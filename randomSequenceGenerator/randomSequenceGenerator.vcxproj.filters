@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="CPUrandomSequenceGenerator.hpp" />
+    <ClInclude Include="include\randomSequenceGenerator.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="doubleBuffersRandomSequenceGenerator.hpp" />
+    <ClInclude Include="GPUrandomSequenceGenerator.hpp" />
+    <ClInclude Include="EasyCL.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{ec0edac9-86a1-4446-aa28-113f35d8363c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="randomSequenceGenerator.cpp" />
+    <ClCompile Include="CPUrandomSequenceGenerator.cpp" />
+    <ClCompile Include="doubleBuffersRandomSequenceGenerator.cpp" />
+    <ClCompile Include="GPUrandomSequenceGenerator.cpp" />
+    <ClCompile Include="EasyCL.cpp" />
+  </ItemGroup>
+</Project>
