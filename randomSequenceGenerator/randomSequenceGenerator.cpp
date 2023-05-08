@@ -39,3 +39,23 @@ CRandomSequenceGenerator::CRandomSequenceGenerator(size_t memorySizeInBytes) :
         throw std::length_error("Zero size buffer asked while non-zero size one is required");
 }
 
+/* static */ CRandomSequenceGenerator::TBuffer CRandomSequenceGenerator::GetBytesOnce(size_t bytesAmount)
+{
+    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::minstd_rand lceGen;
+    lceGen.seed(static_cast<unsigned int>(seed));
+
+    static constexpr size_t seedMask = 0xAAAAAAAAAAAAAAAA;
+    seed ^= seedMask;
+    std::mt19937_64 mtGen;
+    mtGen.seed(seed);
+
+    std::uniform_int_distribution<> distribution;
+    
+    TBuffer buffer(bytesAmount);
+    for (TByte& byte : buffer)
+        byte = static_cast<TByte>(distribution(mtGen) ^ distribution(lceGen));
+
+    return buffer;
+
+}

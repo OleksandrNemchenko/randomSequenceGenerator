@@ -19,8 +19,22 @@ class CRandomSequenceGenerator
 public:
     using FDecreaseThreadPriority = std::function<void()>;
     using TFilledTimeout = std::chrono::nanoseconds;
+    using TByte = uint8_t;
+    using TBuffer = std::vector<TByte>;
     enum EGeneratorType { CPU_GENERATOR, GPU_GENERATOR, GPU_IF_POSSIBLE_GENERATOR };
     static std::unique_ptr<CRandomSequenceGenerator> Make(size_t memorySizeInBytes, FDecreaseThreadPriority decreaseThreadPriorityCallback, EGeneratorType generatorType = GPU_IF_POSSIBLE_GENERATOR);
+
+    static TBuffer GetBytesOnce(size_t bytesAmount);
+
+    template<typename TData>
+    requires std::is_pod_v<TData>
+    static std::vector<TData> GetDataOnce(size_t bytesAmount)
+    {
+        TBuffer bytes = GetBytesOnce(sizeof(TData) * bytesAmount);
+        TData* dataPtr = reinterpret_cast<TData*>(bytes.data());
+        std::vector<TData> datas(dataPtr, dataPtr + bytesAmount);
+        return datas;
+    }
 
     CRandomSequenceGenerator(size_t memorySizeInBytes);
     virtual ~CRandomSequenceGenerator() noexcept = default;
@@ -59,8 +73,6 @@ public:
     virtual std::pair<TFilledTimeout, size_t> GetGenStatistic() const noexcept = 0;
 
 protected:
-    using TByte = uint8_t;
-    using TBuffer = std::vector<TByte>;
     using TSpan = std::span<TByte>;
 
     virtual TSpan GetRandomBytes(size_t size) = 0;

@@ -69,6 +69,7 @@ void TestGeneralAbilities()
     { auto r = gen->GetValues<std::string>(5); }
 
 // UNABLE to be compiled
+
 //    { auto r = gen->GetValue<std::string>(); }
 //    { auto r = gen->GetValue<std::vector<int>>(); }
 //    { auto r = gen->GetValue<thread>(5); }
@@ -243,4 +244,29 @@ void TestSequence(CRandomSequenceGenerator::EGeneratorType genType)
         std::cout << ", value change min/avg/max = " << min << "/" << static_cast<size_t>(avg) << "/" << max << std::endl;
 
     }
+}
+
+
+void TestStaticGeneration()
+{
+    std::cout << "- Test simple sequence generation: ";
+
+    static constexpr size_t valuesAmount = 1024;
+    struct SPOD
+    {
+        long double _ld;
+        char _arr[13];
+        std::array<signed long, 149> _arr2;
+//        std::vector<long> str;        // Won't be compiled due to the constraint
+    };
+    using TData = SPOD;
+
+    std::vector<uint8_t> bytes = CRandomSequenceGenerator::GetBytesOnce(valuesAmount * sizeof(TData));
+    std::this_thread::sleep_for(std::chrono::milliseconds{ 10 });
+    std::vector<TData> values = CRandomSequenceGenerator::GetDataOnce<TData>(valuesAmount);
+    TData* valuesPtr = reinterpret_cast<TData*>(values.data());
+    std::vector<uint8_t> bytesFromValues(reinterpret_cast<uint8_t*>(valuesPtr), reinterpret_cast<uint8_t*>(valuesPtr + valuesAmount));
+
+    if(bytes == bytesFromValues)
+        OutputError();
 }
