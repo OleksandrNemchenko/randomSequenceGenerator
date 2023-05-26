@@ -32,6 +32,8 @@ void DecreaseThreadPriority()
 {
 #ifdef _WIN32
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+#else // // _WIN32
+    static_assert(false, "Need to implement thread priority decerease for non-Windos implementation");
 #endif // _WIN32
 };
 
@@ -135,11 +137,11 @@ void TestGeneralAbilities()
 
 }
 
-void TestSequence(CRandomSequenceGenerator::EGeneratorType genType)
+void TestSequence(CRandomSequenceGenerator::EGeneratorType genType, size_t bufSize)
 {
-    std::cout << "- Test sequences: ";
+    std::cout << "- Test sequences for " << bufSize / 1000 << "K : ";
 
-    auto gen = CRandomSequenceGenerator::Make(1'000'000, DecreaseThreadPriority, genType);
+    auto gen = CRandomSequenceGenerator::Make(bufSize, DecreaseThreadPriority, genType);
     WaitForInit(gen.get());
 
     const size_t allocs = 1000;
@@ -166,13 +168,10 @@ void TestSequence(CRandomSequenceGenerator::EGeneratorType genType)
             lastCheckTimePoint = std::chrono::steady_clock::now();
         }
     }
-    std::chrono::nanoseconds byteTimeDelayNs = gen->GetGenStatistic().first / gen->GetGenStatistic().second;
-    std::chrono::microseconds byteTimeDelayUs = std::chrono::duration_cast<std::chrono::microseconds>(byteTimeDelayNs);
+    std::chrono::microseconds generateTimeDelay = std::chrono::duration_cast<std::chrono::microseconds>(gen->Statistics()._generate);
+    std::chrono::microseconds readTimeDelay = std::chrono::duration_cast<std::chrono::microseconds>(gen->Statistics()._store);
 
-    if (byteTimeDelayUs.count() == 0)
-        std::cout << " (" << byteTimeDelayNs.count() << "ns for byte generation) ";
-    else
-        std::cout << " (" << byteTimeDelayUs.count() << "us for byte generation) ";
+    std::cout << " (" << generateTimeDelay.count() << "us / " << readTimeDelay.count() << "us for generation / store) ";
     bool firstBuf = true;
     for (auto& buf : buffers)
     {
@@ -246,6 +245,15 @@ void TestSequence(CRandomSequenceGenerator::EGeneratorType genType)
     }
 }
 
+void TestSequence(CRandomSequenceGenerator::EGeneratorType genType)
+{
+    TestSequence(genType,   1'000);
+    TestSequence(genType, 100'000);
+
+    if (genType == CRandomSequenceGenerator::EGeneratorType::GPU_GENERATOR)
+        TestSequence(genType, 10'000'000);
+}
+
 
 void TestStaticGeneration()
 {
@@ -269,4 +277,7 @@ void TestStaticGeneration()
 
     if(bytes == bytesFromValues)
         OutputError();
+
+    std::cout << "OK" << std::endl;
+
 }

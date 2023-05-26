@@ -1,12 +1,13 @@
 
 #include <cassert>
 #include <chrono>
+#include <iostream>
 #include <stdexcept>
 #include <thread>
 
 #include "doubleBuffersRandomSequenceGenerator.hpp"
 
-CDoubleBuffersRandomSequenceGenerator::CDoubleBuffersRandomSequenceGenerator(size_t memorySizeInBytes, FDecreaseThreadPriority decreaseThreadPriorityCallback):
+CDoubleBuffersRandomSequenceGenerator::CDoubleBuffersRandomSequenceGenerator(size_t memorySizeInBytes, FDecreaseThreadPriority decreaseThreadPriorityCallback) :
     CRandomSequenceGenerator(memorySizeInBytes), _decreaseThreadPriorityCallback(decreaseThreadPriorityCallback)
 {
 }
@@ -29,6 +30,7 @@ void CDoubleBuffersRandomSequenceGenerator::InitBase()
         catch (std::runtime_error err)
         {
             std::string str = err.what();
+            std::cerr << "OpenCL error: " << str << std::endl;
             assert(false);
         }
         catch (...)
@@ -40,6 +42,16 @@ void CDoubleBuffersRandomSequenceGenerator::InitBase()
     });
 
     _calcThread->detach();
+}
+
+void CDoubleBuffersRandomSequenceGenerator::SetStatistics(const SStatistics& statistics) noexcept
+{
+    _lastStatistics = statistics;
+}
+
+CRandomSequenceGenerator::SStatistics CDoubleBuffersRandomSequenceGenerator::Statistics() const noexcept
+{
+    return _lastStatistics;
 }
 
 void CDoubleBuffersRandomSequenceGenerator::StartThreadFinish()
@@ -65,7 +77,7 @@ void CDoubleBuffersRandomSequenceGenerator::Init()
     for (size_t i = 0; i < _buffer.size(); ++i)
     {
         SBuffer& buffer = _buffer[i];
-        bool bufferFilled = FillBuffer(i);
+        const bool bufferFilled = FillBuffer(i);
 
         if (!bufferFilled)
             return;
@@ -86,26 +98,18 @@ void CDoubleBuffersRandomSequenceGenerator::ProcessEvents()
 
         switch (_actionToDo)
         {
-        case TERMINATE_THREAD :
+        case TERMINATE_THREAD:
             FinishThread();
             return;
 
-        case FILL_BUFFER :
+        case FILL_BUFFER:
             for (size_t i = 0; i < _buffer.size(); ++i)
             {
                 SBuffer& buffer = _buffer[i];
                 if (!buffer._ready)
                 {
-                    std::chrono::steady_clock::time_point startTimePoint = std::chrono::steady_clock::now();
-
                     if (FillBuffer(i))
                     {
-                        std::chrono::steady_clock::time_point endTimePoint = std::chrono::steady_clock::now();
-
-                        _filledGeneralTime += endTimePoint - startTimePoint;
-                        _filledGeneralBytes += BufferSize();
-                        _filledGeneralStatistics = std::make_pair(_filledGeneralTime, _filledGeneralBytes);
-
                         buffer._consumed = 0;
                         buffer._ready = true;
                     }
@@ -151,8 +155,8 @@ CRandomSequenceGenerator::TSpan CDoubleBuffersRandomSequenceGenerator::GetRandom
 
     std::lock_guard<std::recursive_mutex> lockRndNumberGetter(_getRandomNumberMutex);
 
-    size_t prevConsumed = _buffer[_activeBuffer]._consumed;
-    size_t newConsumed = prevConsumed + size;
+    const size_t prevConsumed = _buffer[_activeBuffer]._consumed;
+    const size_t newConsumed = prevConsumed + size;
 
     TByte* data = nullptr;
 
@@ -166,7 +170,7 @@ CRandomSequenceGenerator::TSpan CDoubleBuffersRandomSequenceGenerator::GetRandom
         _buffer[_activeBuffer]._ready = false;
 
         DoAction(FILL_BUFFER);
-     
+
         if (++_activeBuffer >= _buffersAmount)
             _activeBuffer = 0;
 
@@ -186,9 +190,4 @@ CRandomSequenceGenerator::TSpan CDoubleBuffersRandomSequenceGenerator::GetRandom
 size_t CDoubleBuffersRandomSequenceGenerator::BuffersAmount() const noexcept
 {
     return _buffersAmount;
-}
-
-std::pair<CDoubleBuffersRandomSequenceGenerator::TFilledTimeout, size_t> CDoubleBuffersRandomSequenceGenerator::GetGenStatistic() const noexcept
-{
-    return _filledGeneralStatistics;
 }

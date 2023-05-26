@@ -8,7 +8,7 @@
 #include <mutex>
 #include <thread>
 
-#include <randomSequenceGenerator.hpp>
+#include "include/randomSequenceGenerator.hpp"
 
 class CDoubleBuffersRandomSequenceGenerator : public CRandomSequenceGenerator
 {
@@ -16,10 +16,10 @@ public:
     CDoubleBuffersRandomSequenceGenerator(size_t memorySizeInBytes, FDecreaseThreadPriority decreaseThreadPriorityCallback);
 
     bool ReadyToWork() const noexcept override;
-    std::pair<TFilledTimeout, size_t> GetGenStatistic() const noexcept override;
+    SStatistics Statistics() const noexcept override;
 
 protected:
-    enum EActionToDo {FILL_BUFFER, TERMINATE_THREAD};
+    enum EActionToDo { FILL_BUFFER, TERMINATE_THREAD };
     virtual void AllocBuffers(size_t buffers, size_t bytesInBuffer) = 0;
     virtual bool ImplInit() = 0;
     virtual void FinishThread() {}
@@ -27,6 +27,8 @@ protected:
     virtual size_t BuffersAmount() const noexcept;
     virtual void StartThreadFinish();
     virtual TByte* Array(size_t bufferNum) noexcept = 0;
+
+    void SetStatistics(const SStatistics& statistics) noexcept;
     void InitBase();
 
 private:
@@ -49,10 +51,8 @@ private:
     std::mutex _finishThreadMutex;
     std::condition_variable _finishThreadCondVar;
     bool _finishThreadEventHappened;
-    std::chrono::nanoseconds _filledGeneralTime = std::chrono::nanoseconds{ 0 };
-    size_t _filledGeneralBytes = 0;
-    std::atomic<std::pair<TFilledTimeout, size_t>> _filledGeneralStatistics;
     FDecreaseThreadPriority _decreaseThreadPriorityCallback;
+    std::atomic<SStatistics> _lastStatistics;
 
     void Init();
     void ProcessEvents();

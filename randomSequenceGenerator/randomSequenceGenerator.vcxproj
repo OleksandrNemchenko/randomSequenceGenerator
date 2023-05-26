@@ -21,14 +21,12 @@
   <ItemGroup>
     <ClInclude Include="CPUrandomSequenceGenerator.hpp" />
     <ClInclude Include="doubleBuffersRandomSequenceGenerator.hpp" />
-    <ClInclude Include="EasyCL.hpp" />
     <ClInclude Include="GPUrandomSequenceGenerator.hpp" />
     <ClInclude Include="include\randomSequenceGenerator.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPUrandomSequenceGenerator.cpp" />
     <ClCompile Include="doubleBuffersRandomSequenceGenerator.cpp" />
-    <ClCompile Include="EasyCL.cpp" />
     <ClCompile Include="GPUrandomSequenceGenerator.cpp" />
     <ClCompile Include="randomSequenceGenerator.cpp" />
   </ItemGroup>

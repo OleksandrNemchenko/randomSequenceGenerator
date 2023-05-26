@@ -7,7 +7,6 @@
     </ClInclude>
     <ClInclude Include="doubleBuffersRandomSequenceGenerator.hpp" />
     <ClInclude Include="GPUrandomSequenceGenerator.hpp" />
-    <ClInclude Include="EasyCL.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -19,6 +18,5 @@
     <ClCompile Include="CPUrandomSequenceGenerator.cpp" />
     <ClCompile Include="doubleBuffersRandomSequenceGenerator.cpp" />
     <ClCompile Include="GPUrandomSequenceGenerator.cpp" />
-    <ClCompile Include="EasyCL.cpp" />
   </ItemGroup>
 </Project>

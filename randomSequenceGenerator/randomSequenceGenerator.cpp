@@ -2,7 +2,7 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <randomSequenceGenerator.hpp>
+#include "include/randomSequenceGenerator.hpp"
 
 #include "CPUrandomSequenceGenerator.hpp"
 #include "GPUrandomSequenceGenerator.hpp"
@@ -45,13 +45,13 @@ CRandomSequenceGenerator::CRandomSequenceGenerator(size_t memorySizeInBytes) :
     std::minstd_rand lceGen;
     lceGen.seed(static_cast<unsigned int>(seed));
 
-    static constexpr size_t seedMask = 0xAAAAAAAAAAAAAAAA;
+    static constexpr size_t seedMask = 0xAAAAAAAA;
     seed ^= seedMask;
     std::mt19937_64 mtGen;
     mtGen.seed(seed);
 
     std::uniform_int_distribution<> distribution;
-    
+
     TBuffer buffer(bytesAmount);
     for (TByte& byte : buffer)
         byte = static_cast<TByte>(distribution(mtGen) ^ distribution(lceGen));
